@@ -19,14 +19,17 @@ module.exports = (env, argv) => {
         output: {
             path: path.resolve(__dirname, 'dist'),
             filename: 'js/[name].js',
-            publicPath: '/',  // ← ВАЖНО! Добавили эту строку
+            publicPath: '/',
             clean: true,
         },
         
         stats: 'errors-warnings',
         
         plugins: [
-            // ↓↓↓ ВАЖНО! Исправленный HtmlWebpackPlugin ↓↓↓
+            new MiniCssExtractPlugin({
+                filename: 'css/[name].css',
+            }),
+            
             new HtmlWebpackPlugin({
                 filename: 'index.html',
                 template: './src/index.ejs',
