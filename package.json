@@ -1,6 +1,6 @@
 {
     "name": "genshin-calculator-windows",
-    "version": "4.0.0",
+    "version": "5.0.0",
     "description": "Genshin Impact Calculator for Windows - Fixed Version",
     "scripts": {
         "dev": "node server.js",
