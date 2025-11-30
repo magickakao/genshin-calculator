@@ -39,7 +39,7 @@ module.exports = (env, argv) => {
             new HtmlWebpackPlugin({
                 filename: 'index.html',
                 template: './src/index.ejs',
-                inject: true,  // ← Webpack сам вставит правильные пути
+                inject: true,
                 templateParameters: {
                     'version': '4.0.0',
                 },
