@@ -26,15 +26,6 @@ module.exports = (env, argv) => {
         stats: 'errors-warnings',
         
         plugins: [
-            new webpack.DefinePlugin({
-                __VERSION__: JSON.stringify('4.0.0'),
-                __DEVEL__: JSON.stringify(isDevelopment),
-            }),
-            
-            new MiniCssExtractPlugin({
-                filename: 'css/[name].css',
-            }),
-            
             // ↓↓↓ ВАЖНО! Исправленный HtmlWebpackPlugin ↓↓↓
             new HtmlWebpackPlugin({
                 filename: 'index.html',
