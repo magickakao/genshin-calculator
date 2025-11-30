@@ -8,20 +8,21 @@ module.exports = (env, argv) => {
     const isDevelopment = argv.mode === 'development';
     
     return {
-        // ↓↓↓ ДОБАВИЛИ ЭТУ СТРОЧКУ ↓↓↓
-        bail: false, // Не останавливаться при ошибках
-        // ↑↑↑ ДОБАВИЛИ ЭТУ СТРОЧКУ ↑↑↑
+        bail: false,
         
         entry: {
             'app': './src/js/app.js',
             'db': './src/js/db.js', 
             'ui': './src/js/ui.js'
         },
+        
         output: {
             path: path.resolve(__dirname, 'dist'),
             filename: 'js/[name].js',
+            publicPath: '/',  // ← ВАЖНО! Добавили эту строку
             clean: true,
         },
+        
         stats: 'errors-warnings',
         
         plugins: [
@@ -29,19 +30,22 @@ module.exports = (env, argv) => {
                 __VERSION__: JSON.stringify('4.0.0'),
                 __DEVEL__: JSON.stringify(isDevelopment),
             }),
+            
             new MiniCssExtractPlugin({
                 filename: 'css/[name].css',
             }),
+            
+            // ↓↓↓ ВАЖНО! Исправленный HtmlWebpackPlugin ↓↓↓
             new HtmlWebpackPlugin({
                 filename: 'index.html',
-                scriptLoading: 'blocking',
-                inject: true,
-                title: 'Genshin Impact Calculator - Windows Fixed',
                 template: './src/index.ejs',
+                inject: true,  // ← Webpack сам вставит правильные пути
                 templateParameters: {
                     'version': '4.0.0',
-                }
+                },
+                minify: false
             }),
+            
             new CopyPlugin({
                 patterns: [
                     { 
