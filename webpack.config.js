@@ -39,11 +39,8 @@ module.exports = (env, argv) => {
             // HtmlWebpackPlugin с новой версией для cache bust
             new HtmlWebpackPlugin({
                 filename: 'index.html',
-                template: './src/index.ejs',
+                template: './src/index.html',
                 inject: true,
-                templateParameters: {
-                    'version': '5.0.0',  // НОВАЯ ВЕРСИЯ ДЛЯ ОБХОДА КЭША
-                },
                 minify: false
             }),
             
