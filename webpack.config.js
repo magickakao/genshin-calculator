@@ -26,7 +26,6 @@ module.exports = (env, argv) => {
         stats: 'errors-warnings',
         
         plugins: [
-            // DefinePlugin с ПУСТОЙ версией чтобы убрать ?4.0.0 из путей
             new webpack.DefinePlugin({
                 __VERSION__: JSON.stringify(''),
                 __DEVEL__: JSON.stringify(isDevelopment),
@@ -36,11 +35,14 @@ module.exports = (env, argv) => {
                 filename: 'css/[name].css',
             }),
             
-            // HtmlWebpackPlugin с новой версией для cache bust
+            // ВАЖНО: вернуть index.ejs!
             new HtmlWebpackPlugin({
                 filename: 'index.html',
-                template: './src/index.html',
+                template: './src/index.ejs',
                 inject: true,
+                templateParameters: {
+                    'version': '',  // ПУСТАЯ СТРОКА
+                },
                 minify: false
             }),
             
