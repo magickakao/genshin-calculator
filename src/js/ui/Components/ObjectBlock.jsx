@@ -24,6 +24,14 @@ const levelItems = [
     {level: 80, ascension: 5, maxLevel: 80},
     {level: 80, ascension: 6, maxLevel: 90},
     {level: 90, ascension: 6, maxLevel: 90},
+    
+    // НОВОЕ: диапазон 90-95
+    {level: 90, ascension: 6, maxLevel: 95},
+    {level: 95, ascension: 6, maxLevel: 95},
+    
+    // НОВОЕ: диапазон 95-100
+    {level: 95, ascension: 6, maxLevel: 100},
+    {level: 100, ascension: 6, maxLevel: 100},
 ];
 
 export class CharObjectBlock extends React.Component {
@@ -53,6 +61,7 @@ export class CharObjectBlock extends React.Component {
                         level={this.props.settings.char_level}
                         ascension={this.props.settings.char_ascension}
                         onLevelChange={this.props.onLevelChange}
+                        maxLevel={100}  // ПЕРСОНАЖИ: до 100 уровня
                     />
                 </ObjectBlock>
                 {this.props.char.isBeta() ? <BetaWarning /> : null}
@@ -134,6 +143,7 @@ export class WeaponObjectBlock extends React.Component {
                         level={level}
                         ascension={ascension}
                         onLevelChange={this.props.onLevelChange}
+                        maxLevel={90}  // ОРУЖИЕ: остаётся до 90
                     />
                 </ObjectBlock>
                 {this.props.weapon.isBeta() ? <BetaWarning /> : null}
@@ -216,11 +226,11 @@ function ObjectBlock(props) {
 class ObjectAscended extends React.Component {
     constructor(props) {
         super(props);
-
         this.lang = new Lang();
     }
 
     handleLevelChange(level) {
+        // 1. Если поле пустое — ставим 1 уровень
         if (!level) {
             this.props.onLevelChange({
                 level: 1,
@@ -229,19 +239,36 @@ class ObjectAscended extends React.Component {
             return;
         }
 
-        let index = getLevelIndex(level, this.props.ascension);
+        // 2. Преобразуем в число (на всякий случай)
+        level = parseInt(level) || 1;
+        
+        // 3. НАХОДИМ СТУПЕНЬКУ ТОЛЬКО ДЛЯ ОПРЕДЕЛЕНИЯ ВОЗВЫШЕНИЯ
+        let index = getLevelIndex(level, this.props.ascension, this.props.maxLevel);
         let data = levelItems[index];
 
+        // 4. УСТАНАВЛИВАЕМ:
         this.props.onLevelChange({
-            level: level,
-            ascension: data.ascension,
+            level: level,  // ← ВОТ ОНО! Сохраняем ТОЧНО ТУ ЦИФРУ, которую ввёл пользователь!
+            ascension: data ? data.ascension : (level > 90 ? 6 : 0),
         });
     }
 
     handleSliderChange(index) {
+        // Ограничиваем индекс для оружия
+        if (this.props.maxLevel === 90) {
+            let maxIndex = levelItems.length - 1;
+            for (let i = levelItems.length - 1; i >= 0; i--) {
+                if (levelItems[i].maxLevel <= 90) {
+                    maxIndex = i;
+                    break;
+                }
+            }
+            index = Math.min(index, maxIndex);
+        }
+        
         let item = levelItems[index];
         this.props.onLevelChange({
-            level: item.level,
+            level: item.level,  // Для ползунка берём уровень из ступеньки
             ascension: item.ascension,
         });
     }
@@ -252,8 +279,24 @@ class ObjectAscended extends React.Component {
             stars.push(<div key={'star'+ i} className={'star'+ (this.props.ascension >= i ? ' active' : '')}/>);
         }
 
-        let levelIndex = getLevelIndex(this.props.level, this.props.ascension);
-        let levelData = levelItems[levelIndex];
+        let levelIndex = getLevelIndex(this.props.level, this.props.ascension, this.props.maxLevel);
+        
+        // ОГРАНИЧЕНИЕ ДЛЯ ОРУЖИЯ
+        let maxSliderIndex = levelItems.length - 1;
+        let displayLevelIndex = levelIndex;
+
+        if (this.props.maxLevel === 90) {
+            // Находим последний индекс с maxLevel <= 90
+            for (let i = levelItems.length - 1; i >= 0; i--) {
+                if (levelItems[i].maxLevel <= 90) {
+                    maxSliderIndex = i;
+                    break;
+                }
+            }
+            displayLevelIndex = Math.min(levelIndex, maxSliderIndex);
+        }
+
+        let levelData = levelItems[displayLevelIndex];
 
         return (
             <div className="info">
@@ -264,19 +307,19 @@ class ObjectAscended extends React.Component {
                     <div className="level-manual">
                         <NumberInput
                             minValue={1}
-                            maxValue={90}
+                            maxValue={this.props.maxLevel || 90}
                             nonEmpty={true}
                             value={this.props.level}
                             onChange={(value) => this.handleLevelChange(value)}
                             addClass="level-input"
                         />
-                        <div className="level-max">/{levelData.maxLevel}</div>
+                        <div className="level-max">/{this.props.maxLevel || 90}</div>
                     </div>
                     <div className="level-slider">
                         <Slider
                             min={0}
-                            max={levelItems.length - 1}
-                            value={levelIndex}
+                            max={maxSliderIndex}
+                            value={displayLevelIndex}
                             onChange={(index) => this.handleSliderChange(index)}
                         />
                     </div>
@@ -387,25 +430,25 @@ export function EnemyLevelLine(props) {
     );
 }
 
-function getLevelIndex(level, ascension) {
+function getLevelIndex(level, ascension, maxLevel = 90) {
     let items = levelItems;
-    let index = -1;
-
-    for (const i in items) {
+    
+    // ПРОСТО ИЩЕМ ПОДХОДЯЩИЙ ДИАПАЗОН
+    for (let i = items.length - 1; i >= 0; i--) {
         let item = items[i];
-
-        if (level > item.maxLevel) continue;
-        if (level < item.level) break;
-        index = i
-
-        if (level == item.level && item.ascension == ascension) break;
+        
+        // Если уровень попадает в диапазон этого элемента
+        if (level >= item.level && level <= item.maxLevel) {
+            return i;
+        }
     }
-
-    return index;
+    
+    // Если не нашли — возвращаем первый элемент
+    return 0;
 }
 
-export function getLevelData(level, ascension) {
-    let levelIndex = getLevelIndex(level, ascension);
+export function getLevelData(level, ascension, maxLevel = 90) {
+    let levelIndex = getLevelIndex(level, ascension, maxLevel);
     if (levelIndex < 0) {
         return;
     }

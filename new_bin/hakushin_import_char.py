@@ -44,7 +44,7 @@ RARITY_NAMES = {
     'QUALITY_PURPLE': 4,
 }
 
-GAME_ID = 10000116
+GAME_ID = 10000050 # ID Томы на Хакушине
 DATA_URL = f'https://api.hakush.in/gi/data/en/character/{GAME_ID}.json'
 
 
